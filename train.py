@@ -282,9 +282,10 @@ def main():
                     opt_heat.step()
                     scheduler_heat.step()
 
-                opt.step()
-                scheduler.step()
-                
+                else:
+                    opt.step()
+                    scheduler.step()
+
                 model.freeze_except()
 
             elif args.method == 'pgd':
