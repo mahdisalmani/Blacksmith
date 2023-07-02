@@ -252,7 +252,7 @@ def main():
                                              args.unif * epsilon[j][0][0].item())
                 eta = attack_utils.clamp(eta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
 
-            ###
+            
             if args.method == 'blacksmith':
                 p = 1 if np.random.random() > rate else 0
                 end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
@@ -272,12 +272,19 @@ def main():
                 output = model(X + delta)
                 loss = F.cross_entropy(output, y)
                 opt.zero_grad()
+                opt_heat.zero_grad()
                 loss.backward()
                 
                 if args.architecture.upper() == "VITB16":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
+                if p == 0:
+                    opt_heat.step()
+                    scheduler_heat.step()
+
                 opt.step()
+                scheduler.step()
+                
                 model.freeze_except()
 
             elif args.method == 'pgd':
@@ -299,6 +306,7 @@ def main():
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
                 opt.step()
+                scheduler.step()
 
             elif args.method == 'fgsm':
                 eta.requires_grad = True
@@ -321,6 +329,7 @@ def main():
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             
                 opt.step()
+                scheduler.step()
             else:
                 raise ValueError
 
@@ -328,7 +337,6 @@ def main():
             train_acc += (output.max(1)[1] == y).sum().item()
             train_n += y.size(0)
             train_steps += 1
-            scheduler.step()
 
 
         if args.validation_early_stop:
