@@ -18,8 +18,6 @@ paper `DeiT: Data-efficient Image Transformers` - https://arxiv.org/abs/2012.128
 Hacked together by / Copyright 2020 Ross Wightman
 """
 
-### timm==0.5.4
-
 import math
 import logging
 from functools import partial
@@ -392,7 +390,7 @@ class VisionTransformer(nn.Module):
         x = self.head(x)
         return x
 
-    ###
+    
     def freeze_except(self, end=None):
         if end is None:
             end = self.depth
@@ -405,7 +403,7 @@ class VisionTransformer(nn.Module):
                 blk.requires_grad_(True)
             else:
                 blk.requires_grad_(False)
-    ###
+    
 
 
 class DistilledVisionTransformer(VisionTransformer):
