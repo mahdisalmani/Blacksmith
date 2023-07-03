@@ -280,11 +280,12 @@ def main():
                 
                 if p == 0:
                     opt_heat.step()
-                    scheduler_heat.step()
 
                 else:
                     opt.step()
-                    scheduler.step()
+
+                scheduler_heat.step()
+                scheduler.step()
 
                 model.freeze_except()
 
