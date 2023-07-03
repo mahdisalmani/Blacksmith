@@ -272,19 +272,19 @@ def main():
                 output = model(X + delta)
                 loss = F.cross_entropy(output, y)
                 opt.zero_grad()
-                # opt_heat.zero_grad()
+                opt_heat.zero_grad()
                 loss.backward()
                 
                 if args.architecture.upper() == "VITB16":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
-                # if p == 0:
-                # opt_heat.step()
-                # scheduler_heat.step()
+                if p == 0:
+                    opt_heat.step()
+                    scheduler_heat.step()
 
-                # else:
-                opt.step()
-                scheduler.step()
+                else:
+                    opt.step()
+                    scheduler.step()
 
                 model.freeze_except()
 
