@@ -220,9 +220,6 @@ def main():
         steps_per_epoch = len(train_loader)
         milestones = list(np.array(args.lr_decay_milestones) * steps_per_epoch)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(opt, milestones=milestones, gamma=0.1)
-        if args.method == 'blacksmith':
-            scheduler_heat = torch.optim.lr_scheduler.CyclicLR(opt_heat, base_lr=args.lr_min, max_lr=args.lr_max_heat,
-                                                      step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
 
     start_train_time = time.time()
     if args.validation_early_stop:
