@@ -198,8 +198,8 @@ class Block(nn.Module):
 
     def forward(self, x, detached=False):
         if detached:
-            x = x + self.drop_path(self.attn(self.norm1(x))).detach()
-            x = x + self.drop_path(self.mlp(self.norm2(x))).detach()
+            x = x + self.drop_path(self.attn(self.norm1(x.detach()).detach()).detach()).detach()
+            x = x + self.drop_path(self.mlp(self.norm2(x.detach()).detach()).detach()).detach()
         else:
             x = x + self.drop_path(self.attn(self.norm1(x)))
             x = x + self.drop_path(self.mlp(self.norm2(x)))

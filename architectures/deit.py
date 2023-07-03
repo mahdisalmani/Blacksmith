@@ -213,8 +213,8 @@ class Block(nn.Module):
 
     def forward(self, x, detached=False):
         if detached:
-            x = x + self.drop_path(self.attn(self.norm1(x))).detach()
-            x = x + self.drop_path(self.mlp(self.norm2(x))).detach()
+            x = x + self.drop_path(self.attn(self.norm1(x.detach()).detach()).detach()).detach()
+            x = x + self.drop_path(self.mlp(self.norm2(x.detach()).detach()).detach()).detach()
         else:
             x = x + self.drop_path(self.attn(self.norm1(x)))
             x = x + self.drop_path(self.mlp(self.norm2(x)))
@@ -312,13 +312,13 @@ class VisionTransformer(nn.Module):
         x = torch.cat((cls_tokens, x), dim=1)
         x = x + self.pos_embed
         x = self.pos_drop(x)
-        ###
+        
         for i, blk in enumerate(self.blocks):
             if i < end:
                 x = blk(x, detached=False)
             else:
                 x = blk(x, detached=True)
-        ###
+        
         x = self.norm(x)[:, 0]
         x = self.pre_logits(x)
         return x
@@ -330,8 +330,9 @@ class VisionTransformer(nn.Module):
         x = self.head(x)
         return x
 
-    ###
-    def freeze_except(self, end):
+    def freeze_except(self, end=None):
+        if end is None:
+            end = self.depth
         if end == self.depth:
             self.head.requires_grad_(True)
         else:
@@ -341,7 +342,6 @@ class VisionTransformer(nn.Module):
                 blk.requires_grad_(True)
             else:
                 blk.requires_grad_(False)
-    ###
 
 
 def checkpoint_filter_fn(state_dict, model, args):
