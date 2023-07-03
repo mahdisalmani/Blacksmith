@@ -255,7 +255,7 @@ def main():
             
             if args.method == 'blacksmith':
                 p = 1 if np.random.random() > rate else 0
-                end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
+                end = args.vit_depth if p == 1 else int((1 - rate) * args.vit_depth)
                 steps = 1 if p == 1 else 2
 
                 model.freeze_except(end)
