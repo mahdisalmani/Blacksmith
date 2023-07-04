@@ -220,6 +220,9 @@ def main():
         steps_per_epoch = len(train_loader)
         milestones = list(np.array(args.lr_decay_milestones) * steps_per_epoch)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(opt, milestones=milestones, gamma=0.1)
+        if args.method == 'blacksmith':
+            scheduler_heat = torch.optim.lr_scheduler.CyclicLR(opt_heat, base_lr=args.lr_min, max_lr=args.lr_max_heat,
+                                                      step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
 
     start_train_time = time.time()
     if args.validation_early_stop:
@@ -252,7 +255,7 @@ def main():
             
             if args.method == 'blacksmith':
                 p = 1 if np.random.random() > rate else 0
-                end = args.vit_depth if p == 1 else int((1 - rate) * args.vit_depth)
+                end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
                 steps = 1 if p == 1 else 2
 
                 model.freeze_except(end)
@@ -272,9 +275,7 @@ def main():
                 # opt_heat.zero_grad()
                 loss.backward()
                 
-                if args.architecture.upper() == "VIT_BASE":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-                if args.architecture.upper() == "DEIT_TINY":
+                if args.architecture.upper() == "VITB16":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
                 # if p == 0:
@@ -302,11 +303,9 @@ def main():
                 opt.zero_grad()
                 loss.backward()
                 
-                if args.architecture.upper() == "VIT_BASE":
+                if args.architecture.upper() == "VITB16":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-                if args.architecture.upper() == "DEIT_TINY":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-
+                
                 opt.step()
                 scheduler.step()
 
@@ -327,9 +326,7 @@ def main():
                 opt.zero_grad()
                 loss.backward()
             
-                if args.architecture.upper() == "VIT_BASE":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-                if args.architecture.upper() == "DEIT_TINY":
+                if args.architecture.upper() == "VITB16":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             
                 opt.step()
