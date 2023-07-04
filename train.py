@@ -243,7 +243,8 @@ def main():
         train_acc = 0
         train_n = 0
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
-            rate = (total_steps - train_steps) / total_steps
+            # rate = (total_steps - train_steps) / total_steps
+            rate = 0.5
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
             if args.unif > 0:
@@ -278,7 +279,7 @@ def main():
                 
                 if args.architecture.upper() == "VIT_BASE":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-                if args.architecture.upper() == "DEIT_TINY":
+                elif args.architecture.upper() == "DEIT_TINY":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
                 # if p == 0:
@@ -308,7 +309,7 @@ def main():
                 
                 if args.architecture.upper() == "VIT_BASE":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-                if args.architecture.upper() == "DEIT_TINY":
+                elif args.architecture.upper() == "DEIT_TINY":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
                 opt.step()
@@ -333,7 +334,7 @@ def main():
             
                 if args.architecture.upper() == "VIT_BASE":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-                if args.architecture.upper() == "DEIT_TINY":
+                elif args.architecture.upper() == "DEIT_TINY":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             
                 opt.step()
