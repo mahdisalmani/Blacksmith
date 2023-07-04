@@ -275,7 +275,9 @@ def main():
                 # opt_heat.zero_grad()
                 loss.backward()
                 
-                if args.architecture.upper() == "VITB16":
+                if args.architecture.upper() == "VIT_BASE":
+                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+                if args.architecture.upper() == "DEIT_TINY":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
                 # if p == 0:
@@ -303,7 +305,9 @@ def main():
                 opt.zero_grad()
                 loss.backward()
                 
-                if args.architecture.upper() == "VITB16":
+                if args.architecture.upper() == "VIT_BASE":
+                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+                if args.architecture.upper() == "DEIT_TINY":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
                 opt.step()
@@ -326,7 +330,9 @@ def main():
                 opt.zero_grad()
                 loss.backward()
             
-                if args.architecture.upper() == "VITB16":
+                if args.architecture.upper() == "VIT_BASE":
+                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+                if args.architecture.upper() == "DEIT_TINY":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             
                 opt.step()
