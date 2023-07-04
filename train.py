@@ -252,7 +252,7 @@ def main():
             
             if args.method == 'blacksmith':
                 p = 1 if np.random.random() > rate else 0
-                end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
+                end = args.vit_depth if p == 1 else int((1 - rate) * args.vit_depth)
                 steps = 1 if p == 1 else 2
 
                 model.freeze_except(end)
@@ -269,6 +269,7 @@ def main():
                 output = model(X + delta)
                 loss = F.cross_entropy(output, y)
                 opt.zero_grad()
+                # opt_heat.zero_grad()
                 loss.backward()
                 
                 if args.architecture.upper() == "VIT_BASE":
@@ -276,6 +277,11 @@ def main():
                 if args.architecture.upper() == "DEIT_TINY":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
+                # if p == 0:
+                # opt_heat.step()
+                # scheduler_heat.step()
+
+                # else:
                 opt.step()
                 scheduler.step()
 
