@@ -251,6 +251,7 @@ def main():
                 end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
                 start = 0 if p == 0 else int(rate * args.vit_depth)
                 steps = 1 if p == 1 else 2
+                model.freeze_except(start=start, end=end)
 
                 for j in range(steps):
                     eta.requires_grad = True
@@ -261,7 +262,6 @@ def main():
                     delta = attack_utils.clamp(delta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
                     eta = delta.detach()
                 
-                model.freeze_except(start=start, end=end)
                 delta = delta.detach()
                 output = model(X + delta)
                 loss = F.cross_entropy(output, y)
