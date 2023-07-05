@@ -255,7 +255,8 @@ def main():
 
             
             if args.method == 'blacksmith':
-                p = 1 if np.random.random() > rate else 0
+                # p = 1 if np.random.random() > rate else 0
+                p = epoch % 2
                 end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
                 start = 0 if p == 0 else int(rate * args.vit_depth)
                 steps = 1 if p == 1 else 2
