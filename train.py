@@ -255,13 +255,11 @@ def main():
 
             
             if args.method == 'blacksmith':
-                # p = 1 if np.random.random() > rate else 0
-                p = epoch % 2
+                p = 1 if np.random.random() > rate else 0
                 end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
                 start = 0 if p == 0 else int(rate * args.vit_depth)
                 steps = 1 if p == 1 else 2
 
-                model.freeze_except(start=start, end=end)
                 for j in range(steps):
                     eta.requires_grad = True
                     output = model(X + eta, end=end)
@@ -271,6 +269,7 @@ def main():
                     delta = attack_utils.clamp(delta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
                     eta = delta.detach()
                 
+                model.freeze_except(start=start, end=end)
                 delta = delta.detach()
                 output = model(X + delta)
                 loss = F.cross_entropy(output, y)
@@ -283,11 +282,6 @@ def main():
                 elif args.architecture.upper() == "DEIT_TINY":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
-                # if p == 0:
-                # opt_heat.step()
-                # scheduler_heat.step()
-
-                # else:
                 opt.step()
                 scheduler.step()
 
