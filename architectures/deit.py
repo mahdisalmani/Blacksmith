@@ -334,15 +334,15 @@ class VisionTransformer(nn.Module):
         if end is None:
             end = self.depth
 
-        # if end == self.depth:
-        #     self.head.requires_grad_(True)
-        # else:
-        #     self.head.requires_grad_(False)
+        if end == self.depth:
+            self.head.requires_grad_(True)
+        else:
+            self.head.requires_grad_(False)
             
-        # if start == 0:
-        #     self.patch_embed.requires_grad_(True)
-        # else:
-        #     self.patch_embed.requires_grad_(False)
+        if start == 0:
+            self.patch_embed.requires_grad_(True)
+        else:
+            self.patch_embed.requires_grad_(False)
 
         for i, blk in enumerate(self.blocks):
             if start <= i < end:
