@@ -235,8 +235,8 @@ def main():
         train_acc = 0
         train_n = 0
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
-            # rate = (total_steps - train_steps) / total_steps
-            rate = 0.5
+            rate = (total_steps - train_steps) / total_steps
+            # rate = 0.5
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
             if args.unif > 0:
@@ -247,8 +247,8 @@ def main():
 
             
             if args.method == 'blacksmith':
-                p = 1 if np.random.random() > rate else 0
-                end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
+                p = 1 if np.random.random() > 1 else 0
+                end = args.vit_depth if p == 1 else round(rate * args.vit_depth)
                 start = 0 if p == 0 else int(rate * args.vit_depth)
                 steps = 1 if p == 1 else 2
                 model.freeze_except(start=start, end=end)
