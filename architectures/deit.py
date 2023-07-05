@@ -330,15 +330,22 @@ class VisionTransformer(nn.Module):
         x = self.head(x)
         return x
 
-    def freeze_except(self, end=None):
+    def freeze_except(self, start=0, end=None):
         if end is None:
             end = self.depth
-        if end == self.depth:
-            self.head.requires_grad_(True)
-        else:
-            self.head.requires_grad_(False)
+
+        # if end == self.depth:
+        #     self.head.requires_grad_(True)
+        # else:
+        #     self.head.requires_grad_(False)
+            
+        # if start == 0:
+        #     self.patch_embed.requires_grad_(True)
+        # else:
+        #     self.patch_embed.requires_grad_(False)
+
         for i, blk in enumerate(self.blocks):
-            if i < end:
+            if start <= i < end:
                 blk.requires_grad_(True)
             else:
                 blk.requires_grad_(False)

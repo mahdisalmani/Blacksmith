@@ -205,24 +205,16 @@ def main():
     model.train()
 
     opt = torch.optim.SGD(model.parameters(), lr=args.lr_max, momentum=args.momentum, weight_decay=args.weight_decay)
-    if args.method == 'blacksmith':
-        opt_heat = torch.optim.SGD(model.parameters(), lr=args.lr_max_heat, momentum=args.momentum, weight_decay=args.weight_decay)
 
     lr_steps = args.epochs * len(train_loader)
     if args.lr_schedule == 'cyclic':
         scheduler = torch.optim.lr_scheduler.CyclicLR(opt, base_lr=args.lr_min, max_lr=args.lr_max,
-                                                      step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
-        if args.method == 'blacksmith':
-            scheduler_heat = torch.optim.lr_scheduler.CyclicLR(opt_heat, base_lr=args.lr_min, max_lr=args.lr_max_heat,
                                                       step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
 
     elif args.lr_schedule == 'multistep':
         steps_per_epoch = len(train_loader)
         milestones = list(np.array(args.lr_decay_milestones) * steps_per_epoch)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(opt, milestones=milestones, gamma=0.1)
-        if args.method == 'blacksmith':
-            scheduler_heat = torch.optim.lr_scheduler.CyclicLR(opt_heat, base_lr=args.lr_min, max_lr=args.lr_max_heat,
-                                                      step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
 
     start_train_time = time.time()
     if args.validation_early_stop:
@@ -274,7 +266,6 @@ def main():
                 output = model(X + delta)
                 loss = F.cross_entropy(output, y)
                 opt.zero_grad()
-                # opt_heat.zero_grad()
                 loss.backward()
                 
                 if args.architecture.upper() == "VIT_BASE":
