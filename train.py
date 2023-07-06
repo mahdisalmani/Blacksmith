@@ -247,7 +247,7 @@ def main():
 
             
             if args.method == 'blacksmith':
-                p = 1 if np.random.random() > 1 else 0
+                p = 1 if np.random.random() > 0.5 else 0
                 end = args.vit_depth if p == 1 else round(rate * args.vit_depth)
                 start = 0 if p == 0 else int(rate * args.vit_depth)
                 steps = 1 if p == 1 else 2
