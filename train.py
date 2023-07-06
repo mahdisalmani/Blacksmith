@@ -255,7 +255,7 @@ def main():
 
                 for j in range(steps):
                     eta.requires_grad = True
-                    output = model(X + eta, end=end)
+                    output = model(X + eta, end=end+1)
                     loss = F.cross_entropy(output, y)
                     grad = torch.autograd.grad(loss, eta)[0].detach()
                     delta = attack_utils.clamp(eta + (alpha / steps) * torch.sign(grad), -epsilon, epsilon)
