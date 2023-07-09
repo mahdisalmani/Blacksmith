@@ -244,6 +244,7 @@ def main():
         train_n = 0
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
             rate = (total_steps - train_steps) / total_steps
+            rate = 0.5
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
             if args.unif > 0:
