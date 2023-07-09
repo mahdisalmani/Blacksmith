@@ -279,8 +279,8 @@ def main():
                 opt.zero_grad()
                 loss.backward()
                 
-                if args.architecture.upper() == "VITB16":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+                # if args.architecture.upper() == "VITB16":
+                grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
                 opt.step()
                 scheduler.step()
