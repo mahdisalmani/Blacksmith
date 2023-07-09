@@ -255,14 +255,12 @@ def main():
 
             
             if args.method == 'blacksmith':
-                eta = torch.zeros_like(X).cuda()
-
                 p = 1 if np.random.random() > rate else 0
                 start = 0 if p == 0 else int(rate * args.vit_depth)
                 end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
                 steps = 1 if p == 1 else 2
 
-                model.freeze_except(start=0, end=end)
+                model.freeze_except(end=end)
                 
                 for j in range(steps):
                     eta.requires_grad = True
