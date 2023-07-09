@@ -34,6 +34,7 @@ def get_args():
     parser.add_argument('--pretrain-pos-only', action='store_true')
     parser.add_argument('--patch', type=int, default=4)
     parser.add_argument('--vit-depth', type=int, default=12)
+    parser.add_argument('--grad-clip', default=1, type=float)
 
     # Wide resnet settings (in case of using wideresnet)
     parser.add_argument('--wide_resnet_depth', default=28, type=int, help='WideResNet depth')
@@ -268,10 +269,11 @@ def main():
                 opt.zero_grad()
                 loss.backward()
                 
-                if args.architecture.upper() == "VIT_BASE":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-                elif args.architecture.upper() == "DEIT_TINY":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+                if args.grad_clip > 0:        
+                    if args.architecture.upper() == "VIT_BASE":
+                        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
+                    elif args.architecture.upper() == "DEIT_TINY":
+                        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
                 
                 opt.step()
                 scheduler.step()
@@ -292,11 +294,12 @@ def main():
                 loss = F.cross_entropy(output, y)
                 opt.zero_grad()
                 loss.backward()
-                
-                if args.architecture.upper() == "VIT_BASE":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-                elif args.architecture.upper() == "DEIT_TINY":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+
+                if args.grad_clip > 0:        
+                    if args.architecture.upper() == "VIT_BASE":
+                        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
+                    elif args.architecture.upper() == "DEIT_TINY":
+                        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
                 
                 opt.step()
                 scheduler.step()
@@ -318,10 +321,11 @@ def main():
                 opt.zero_grad()
                 loss.backward()
             
-                if args.architecture.upper() == "VIT_BASE":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-                elif args.architecture.upper() == "DEIT_TINY":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+                if args.grad_clip > 0:        
+                    if args.architecture.upper() == "VIT_BASE":
+                        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
+                    elif args.architecture.upper() == "DEIT_TINY":
+                        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
             
                 opt.step()
                 scheduler.step()

@@ -304,7 +304,7 @@ class VisionTransformer(nn.Module):
         self.num_classes = num_classes
         self.head = nn.Linear(self.embed_dim, num_classes) if num_classes > 0 else nn.Identity()
 
-    def forward_features(self, x, end=12):
+    def forward_features(self, x, start=0, end=12):
         B = x.shape[0]
         x = self.patch_embed(x)
 
@@ -314,7 +314,7 @@ class VisionTransformer(nn.Module):
         x = self.pos_drop(x)
         
         for i, blk in enumerate(self.blocks):
-            if i < end:
+            if start <= i < end:
                 x = blk(x, detached=False)
             else:
                 x = blk(x, detached=True)
@@ -323,10 +323,10 @@ class VisionTransformer(nn.Module):
         x = self.pre_logits(x)
         return x
 
-    def forward(self, x, end=None):
+    def forward(self, x, start=0, end=None):
         if end is None:
             end = self.depth
-        x = self.forward_features(x, end=end)
+        x = self.forward_features(x, start=start, end=end)
         x = self.head(x)
         return x
 
@@ -334,11 +334,17 @@ class VisionTransformer(nn.Module):
         if end is None:
             end = self.depth
 
-        # if end == self.depth:
-        #     self.head.requires_grad_(True)
-        # else:
-        #     self.head.requires_grad_(False)
+        if end == self.depth:
+            self.head.requires_grad_(True)
+        else:
+            self.head.requires_grad_(False)
 
+        if start == 0:
+            self.patch_embed.requires_grad_(True)
+        else:
+            self.patch_embed.requires_grad_(False)
+
+        
         for i, blk in enumerate(self.blocks):
             if start <= i < end:
                 blk.requires_grad_(True)
