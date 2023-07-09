@@ -243,7 +243,7 @@ def main():
         train_acc = 0
         train_n = 0
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
-            rate = (total_steps - train_steps) / total_steps
+            # rate = (total_steps - train_steps) / total_steps
             rate = 0.5
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
@@ -256,10 +256,13 @@ def main():
             
             if args.method == 'blacksmith':
                 p = 1 if np.random.random() > rate else 0
+                
+                start = 0 if p == 0 else int(rate * args.vit_depth)
                 end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
                 steps = 1 if p == 1 else 2
 
-                model.freeze_except(end)
+                model.freeze_except(start=start, end=end)
+                
                 for j in range(steps):
                     eta.requires_grad = True
                     output = model(X + eta, end=end)
@@ -273,17 +276,11 @@ def main():
                 output = model(X + delta)
                 loss = F.cross_entropy(output, y)
                 opt.zero_grad()
-                # opt_heat.zero_grad()
                 loss.backward()
                 
                 if args.architecture.upper() == "VITB16":
                     grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
-                # if p == 0:
-                # opt_heat.step()
-                # scheduler_heat.step()
-
-                # else:
                 opt.step()
                 scheduler.step()
 
