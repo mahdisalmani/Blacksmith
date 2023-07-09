@@ -255,8 +255,9 @@ def main():
 
             
             if args.method == 'blacksmith':
-                p = 1 if np.random.random() > rate else 0
+                eta = torch.zeros_like(X).cuda()
 
+                p = 1 if np.random.random() > rate else 0
                 start = 0 if p == 0 else int(rate * args.vit_depth)
                 end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
                 steps = 1 if p == 1 else 2
@@ -268,7 +269,6 @@ def main():
                     output = model(X + eta, end=end)
                     loss = F.cross_entropy(output, y)
                     grad = torch.autograd.grad(loss, eta)[0].detach()
-                    # delta = attack_utils.clamp(eta + (alpha / steps) * torch.sign(grad), -epsilon, epsilon)
                     delta = eta + (alpha / steps) * torch.sign(grad)
                     delta = attack_utils.clamp(delta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
                     eta = delta.detach()
