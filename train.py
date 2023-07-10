@@ -25,7 +25,7 @@ def get_args():
 
     # Architecture settings
     parser.add_argument('--dataset', default='CIFAR10', type=str, help='One of: CIFAR10, CIFAR100')
-    parser.add_argument('--architecture', default='PreActResNet18', type=str)
+    parser.add_argument('--architecture', default='VIT_BASE', type=str)
 
 
     # Vision transform
@@ -45,7 +45,7 @@ def get_args():
     parser.add_argument('--data-dir', default='/path/to/datasets/', type=str)
 
 
-    # Learning rate settings
+    # Learning settings
     parser.add_argument('--epochs', default=30, type=int)
     parser.add_argument('--lr-schedule', default='cyclic', choices=['cyclic', 'multistep'])
     parser.add_argument('--lr-min', default=0., type=float)
@@ -53,6 +53,7 @@ def get_args():
     parser.add_argument('--lr-decay-milestones', type=int, nargs='+', default=[15, 18])
     parser.add_argument('--weight-decay', default=5e-4, type=float)
     parser.add_argument('--momentum', default=0.9, type=float)
+    parser.add_argument('--clip-grad', default=1.0, type=float)
 
     # Method settings
     parser.add_argument('--method', type=str, default='blacksmith', choices=['blacksmith', 'pgd', 'fgsm'])
@@ -181,16 +182,8 @@ def main():
 
     # Define architecture
     args.num_classes = data_utils.max_label + 1  # Labels start from 0
-    if args.architecture.upper() == 'PREACTRESNET18':
-        model = PreActResNet18(num_classes=args.num_classes).cuda()
 
-    elif args.architecture.upper() in 'WIDERESNET':
-        model = Wide_ResNet(args.wide_resnet_depth,
-                            args.wide_resnet_width,
-                            args.wide_resnet_dropout_rate,
-                            num_classes=args.num_classes).cuda()
-
-    elif args.architecture.upper() == 'VIT_BASE':
+    if args.architecture.upper() == 'VIT_BASE':
         model = vit_base_patch16_224_in21k(pretrained=args.pretrained_vit,
                                            img_size=32,
                                            pretrain_pos_only=args.pretrain_pos_only,
@@ -206,23 +199,16 @@ def main():
     model.train()
 
     opt = torch.optim.SGD(model.parameters(), lr=args.lr_max, momentum=args.momentum, weight_decay=args.weight_decay)
-    if args.method == 'blacksmith':
-        opt_heat = torch.optim.SGD(model.parameters(), lr=args.lr_max_heat, momentum=args.momentum, weight_decay=args.weight_decay)
 
     lr_steps = args.epochs * len(train_loader)
     if args.lr_schedule == 'cyclic':
         scheduler = torch.optim.lr_scheduler.CyclicLR(opt, base_lr=args.lr_min, max_lr=args.lr_max,
                                                       step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
-        if args.method == 'blacksmith':
-            scheduler_heat = torch.optim.lr_scheduler.CyclicLR(opt_heat, base_lr=args.lr_min, max_lr=args.lr_max_heat,
-                                                      step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
-
+        
     elif args.lr_schedule == 'multistep':
         steps_per_epoch = len(train_loader)
         milestones = list(np.array(args.lr_decay_milestones) * steps_per_epoch)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(opt, milestones=milestones, gamma=0.1)
-        if args.method == 'blacksmith':
-            scheduler_heat = torch.optim.lr_scheduler.MultiStepLR(opt_heat, milestones=milestones, gamma=0.1)
 
     start_train_time = time.time()
     if args.validation_early_stop:
@@ -243,7 +229,6 @@ def main():
         train_acc = 0
         train_n = 0
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
-            # rate = (total_steps - train_steps) / total_steps
             rate = args.heat_rate
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
@@ -266,7 +251,10 @@ def main():
                     output = model(X + eta, end=end)
                     loss = F.cross_entropy(output, y)
                     grad = torch.autograd.grad(loss, eta)[0].detach()
-                    delta = eta + (alpha / steps) * torch.sign(grad)
+                    if args.clip > 0:
+                            delta = attack_utils.clamp(eta + (alpha / steps) * torch.sign(grad), -epsilon, epsilon)
+                    else:
+                        delta = eta + (alpha / steps) * torch.sign(grad)
                     delta = attack_utils.clamp(delta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
                     eta = delta.detach()
                 
@@ -274,19 +262,12 @@ def main():
                 output = model(X + delta)
                 loss = F.cross_entropy(output, y)
                 opt.zero_grad()
-                opt_heat.zero_grad()
                 loss.backward()
                 
-                grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
-                
-                if p == 1:
-                    opt.step()
-                else:
-                    opt_heat.step()
+                if args.clip_grad > 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
                     
                 scheduler.step()
-                scheduler_heat.step()
-
                 model.freeze_except()
 
             elif args.method == 'pgd':
@@ -304,8 +285,8 @@ def main():
                 opt.zero_grad()
                 loss.backward()
                 
-                if args.architecture.upper() == "VITB16":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+                if args.clip_grad > 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
                 
                 opt.step()
                 scheduler.step()
@@ -327,8 +308,8 @@ def main():
                 opt.zero_grad()
                 loss.backward()
             
-                if args.architecture.upper() == "VITB16":
-                    grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+                if args.clip_grad > 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
             
                 opt.step()
                 scheduler.step()
@@ -375,14 +356,7 @@ def main():
     if args.robust_test_size != 0:
         print('Training finished, starting evaluation')
         args.num_classes = data_utils.max_label + 1
-        if args.architecture.upper() == 'PREACTRESNET18':
-            model_test = PreActResNet18(num_classes=args.num_classes).cuda()
-        elif args.architecture.upper() in 'WIDERESNET':
-            model_test = Wide_ResNet(args.wide_resnet_depth,
-                                     args.wide_resnet_width,
-                                     args.wide_resnet_dropout_rate,
-                                     num_classes=args.num_classes).cuda()
-        elif args.architecture.upper() == 'VIT_BASE':
+        if args.architecture.upper() == 'VIT_BASE':
             model_test = vit_base_patch16_224_in21k(pretrained=args.pretrained_vit,
                                                     img_size=32,
                                                     pretrain_pos_only=args.pretrain_pos_only,
