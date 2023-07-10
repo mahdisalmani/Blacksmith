@@ -394,8 +394,7 @@ class VisionTransformer(nn.Module):
     def freeze_except(self, start=0, end=None):
         if end is None:
             end = self.depth
-
-        
+    
         if end == self.depth:
             self.patch_embed.requires_grad_(True)
             self.cls_token.requires_grad_(True)
@@ -412,8 +411,7 @@ class VisionTransformer(nn.Module):
             self.norm.requires_grad_(False)
             self.pre_logits.requires_grad_(False)
             self.head.requires_grad_(False)
-
-        
+     
         for i, blk in enumerate(self.blocks):
             if start <= i < end:
                 blk.requires_grad_(True)

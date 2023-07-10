@@ -266,7 +266,8 @@ def main():
                 
                 if args.clip_grad > 0:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
-                    
+
+                opt.step()  
                 scheduler.step()
                 model.freeze_except()
 
