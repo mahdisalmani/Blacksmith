@@ -59,6 +59,7 @@ def get_args():
     
     # Blacksmith settings
     parser.add_argument('--lr-max-heat', default=0.2, type=float)
+    parser.add_argument('--heat-rate', default=0.5, type=float)
 
     # PGD training settings
     parser.add_argument('--attack-iters', type=int, default=2) 
@@ -244,7 +245,7 @@ def main():
         train_n = 0
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
             # rate = (total_steps - train_steps) / total_steps
-            rate = 0.5
+            rate = args.heat_rate
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
             if args.unif > 0:
@@ -256,8 +257,7 @@ def main():
             
             if args.method == 'blacksmith':
                 p = 1 if np.random.random() > rate else 0
-                start = 0 if p == 0 else int(rate * args.vit_depth)
-                end = args.vit_depth if p == 1 else int(rate * args.vit_depth)
+                end = args.vit_depth if p == 1 else int(0.5 * args.vit_depth)
                 steps = 1 if p == 1 else 2
 
                 model.freeze_except(end=end)
