@@ -222,8 +222,7 @@ def main():
         milestones = list(np.array(args.lr_decay_milestones) * steps_per_epoch)
         scheduler = torch.optim.lr_scheduler.MultiStepLR(opt, milestones=milestones, gamma=0.1)
         if args.method == 'blacksmith':
-            scheduler_heat = torch.optim.lr_scheduler.CyclicLR(opt_heat, base_lr=args.lr_min, max_lr=args.lr_max_heat,
-                                                      step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
+            scheduler_heat = torch.optim.lr_scheduler.MultiStepLR(opt_heat, milestones=milestones, gamma=0.1)
 
     start_train_time = time.time()
     if args.validation_early_stop:
@@ -275,13 +274,18 @@ def main():
                 output = model(X + delta)
                 loss = F.cross_entropy(output, y)
                 opt.zero_grad()
+                opt_heat.zero_grad()
                 loss.backward()
                 
-                # if args.architecture.upper() == "VITB16":
                 grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
                 
-                opt.step()
+                if p == 1:
+                    opt.step()
+                else:
+                    opt_heat.step()
+                    
                 scheduler.step()
+                scheduler_heat.step()
 
                 model.freeze_except()
 
