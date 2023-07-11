@@ -9,8 +9,6 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from architectures.preact_resnet import PreActResNet18
-from architectures.wide_resnet import Wide_ResNet
 from architectures.deit import deit_tiny_patch16_224
 from architectures.vit import vit_base_patch16_224_in21k
 
@@ -29,16 +27,11 @@ def get_args():
 
 
     # Vision transform
-    parser.add_argument('--pretrained_vit', default=False, action='store_true',
+    parser.add_argument('--pretrained_vit', default=True, action='store_true',
                         help='Use pretrained vision transformer or not')
     parser.add_argument('--pretrain-pos-only', action='store_true')
     parser.add_argument('--patch', type=int, default=4)
     parser.add_argument('--vit-depth', type=int, default=12)
-
-    # Wide resnet settings (in case of using wideresnet)
-    parser.add_argument('--wide_resnet_depth', default=28, type=int, help='WideResNet depth')
-    parser.add_argument('--wide_resnet_width', default=10, type=int, help='WideResNet width')
-    parser.add_argument('--wide_resnet_dropout_rate', default=0.3, type=float, help='WideResNet dropout rate')
 
     # Training data settings
     parser.add_argument('--batch-size', default=128, type=int)
@@ -46,12 +39,12 @@ def get_args():
 
 
     # Learning settings
-    parser.add_argument('--epochs', default=30, type=int)
+    parser.add_argument('--epochs', default=40, type=int)
     parser.add_argument('--lr-schedule', default='cyclic', choices=['cyclic', 'multistep'])
     parser.add_argument('--lr-min', default=0., type=float)
-    parser.add_argument('--lr-max', default=0.2, type=float)
-    parser.add_argument('--lr-decay-milestones', type=int, nargs='+', default=[15, 18])
-    parser.add_argument('--weight-decay', default=5e-4, type=float)
+    parser.add_argument('--lr-max', default=0.1, type=float)
+    parser.add_argument('--lr-decay-milestones', type=int, nargs='+', default=[35, 38])
+    parser.add_argument('--weight-decay', default=1e-4, type=float)
     parser.add_argument('--momentum', default=0.9, type=float)
     parser.add_argument('--clip-grad', default=1.0, type=float)
 
@@ -59,7 +52,6 @@ def get_args():
     parser.add_argument('--method', type=str, default='blacksmith', choices=['blacksmith', 'pgd', 'fgsm'])
     
     # Blacksmith settings
-    parser.add_argument('--lr-max-heat', default=0.2, type=float)
     parser.add_argument('--heat-rate', default=0.5, type=float)
 
     # PGD training settings
@@ -314,6 +306,7 @@ def main():
             
                 opt.step()
                 scheduler.step()
+
             else:
                 raise ValueError
 
