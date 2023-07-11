@@ -40,7 +40,7 @@ def get_args():
 
     # Learning settings
     parser.add_argument('--epochs', default=40, type=int)
-    parser.add_argument('--lr-schedule', default='cyclic', choices=['cyclic', 'multistep'])
+    parser.add_argument('--lr-schedule', default='multistep', choices=['cyclic', 'multistep'])
     parser.add_argument('--lr-min', default=0., type=float)
     parser.add_argument('--lr-max', default=0.1, type=float)
     parser.add_argument('--lr-decay-milestones', type=int, nargs='+', default=[35, 38])
