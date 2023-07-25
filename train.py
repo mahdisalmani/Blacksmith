@@ -328,7 +328,7 @@ def main():
                 robust_val_acc_hist.append(pgd_acc)
 
         epoch_time = time.time()
-        lr = scheduler.get_last_lr()[0]
+        lr = scheduler1.get_last_lr()[0]
         logger.info('%d \t %.1f \t \t %.4f \t %.4f \t %.4f', epoch, epoch_time - start_epoch_time, lr,
                     train_loss / train_n, train_acc / train_n)
         print(epoch, epoch_time - start_epoch_time, lr, train_loss / train_n, train_acc / train_n)
