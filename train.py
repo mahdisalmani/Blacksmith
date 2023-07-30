@@ -244,9 +244,16 @@ def main():
                     loss = F.cross_entropy(output, y)
                     grad = torch.autograd.grad(loss, eta)[0].detach()
                     if args.clip > 0:
-                        delta = attack_utils.clamp(eta + (alpha) * torch.sign(grad), -epsilon, epsilon)
+                        if steps == 1:
+                            delta = attack_utils.clamp(eta + (alpha) * torch.sign(grad), -epsilon, epsilon)
+                        else:
+                            delta = attack_utils.clamp(eta + (pgd_alpha) * torch.sign(grad), -epsilon, epsilon)
                     else:
-                        delta = eta + (alpha / steps) * torch.sign(grad)
+                        if steps == 1:
+                            delta = eta + (alpha) * torch.sign(grad)
+                        else:
+                            delta = eta + (pgd_alpha) * torch.sign(grad)
+                            
                     delta = attack_utils.clamp(delta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
                     eta = delta.detach()
                 
