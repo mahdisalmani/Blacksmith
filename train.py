@@ -220,10 +220,9 @@ def main():
         train_loss = 0
         train_acc = 0
         train_n = 0
+        rate = args.heat_rate
+        print(rate)
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
-            # rate = args.heat_rate
-            rate = min(0.2, 1 -  train_steps / total_steps)
-            print(rate)
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
             if args.unif > 0:
