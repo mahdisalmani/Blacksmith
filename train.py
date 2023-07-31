@@ -245,9 +245,9 @@ def main():
                     grad = torch.autograd.grad(loss, eta)[0].detach()
                     if args.clip > 0:
                         if steps == 1:
-                            delta = attack_utils.clamp(eta + (alpha) * torch.sign(grad), -epsilon, epsilon)
+                            delta = attack_utils.clamp(eta + (alpha) * torch.sign(grad), -epsilon/steps, epsilon/steps)
                         else:
-                            delta = attack_utils.clamp(eta + (pgd_alpha) * torch.sign(grad), -epsilon, epsilon)
+                            delta = attack_utils.clamp(eta + (pgd_alpha) * torch.sign(grad), -epsilon/steps, epsilon/steps)
                     else:
                         if steps == 1:
                             delta = eta + (alpha) * torch.sign(grad)
