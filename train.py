@@ -221,7 +221,9 @@ def main():
         train_acc = 0
         train_n = 0
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
-            rate = args.heat_rate
+            # rate = args.heat_rate
+            rate = min(0.2, 1 - total_steps / train_steps)
+            print(rate)
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
             if args.unif > 0:
@@ -245,9 +247,9 @@ def main():
                     grad = torch.autograd.grad(loss, eta)[0].detach()
                     if args.clip > 0:
                         if steps == 1:
-                            delta = attack_utils.clamp(eta + (alpha) * torch.sign(grad), -epsilon/steps, epsilon/steps)
+                            delta = attack_utils.clamp(eta + (alpha) * torch.sign(grad), -epsilon, epsilon)
                         else:
-                            delta = attack_utils.clamp(eta + (pgd_alpha) * torch.sign(grad), -epsilon/steps, epsilon/steps)
+                            delta = attack_utils.clamp(eta + (pgd_alpha) * torch.sign(grad), -epsilon, epsilon)
                     else:
                         if steps == 1:
                             delta = eta + (alpha) * torch.sign(grad)
