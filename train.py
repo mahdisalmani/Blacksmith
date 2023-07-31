@@ -39,12 +39,12 @@ def get_args():
 
 
     # Learning settings
-    parser.add_argument('--epochs', default=40, type=int)
-    parser.add_argument('--lr-schedule', default='multistep', choices=['cyclic', 'multistep'])
+    parser.add_argument('--epochs', default=30, type=int)
+    parser.add_argument('--lr-schedule', default='cyclic', choices=['cyclic', 'multistep'])
     parser.add_argument('--lr-min', default=0., type=float)
-    parser.add_argument('--lr-max', default=0.1, type=float)
-    parser.add_argument('--lr-decay-milestones', type=int, nargs='+', default=[35, 38])
-    parser.add_argument('--weight-decay', default=1e-4, type=float)
+    parser.add_argument('--lr-max', default=0.2, type=float)
+    parser.add_argument('--lr-decay-milestones', type=int, nargs='+', default=[25, 28])
+    parser.add_argument('--weight-decay', default=2e-4, type=float)
     parser.add_argument('--momentum', default=0.9, type=float)
     parser.add_argument('--clip-grad', default=1.0, type=float)
 
@@ -222,7 +222,7 @@ def main():
         train_n = 0
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
             # rate = args.heat_rate
-            rate = min(0.2, 1 - total_steps / train_steps)
+            rate = min(0.2, 1 -  train_steps / total_steps)
             print(rate)
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
