@@ -220,10 +220,10 @@ def main():
         train_loss = 0
         train_acc = 0
         train_n = 0
-        rate = max(0.2, 1 -  train_steps / total_steps)
+        # rate = max(0.2, 1 -  train_steps / total_steps)
+        rate = args.heat_rate
         print(rate)
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
-            # rate = args.heat_rate
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
             if args.unif > 0:
@@ -242,7 +242,7 @@ def main():
                 
                 for j in range(steps):
                     eta.requires_grad = True
-                    output = model(X + eta, end=end)
+                    output = model(X + eta, end=end+1)
                     loss = F.cross_entropy(output, y)
                     grad = torch.autograd.grad(loss, eta)[0].detach()
                     if args.clip > 0:
