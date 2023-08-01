@@ -191,10 +191,13 @@ def main():
     model.train()
 
     opt = torch.optim.SGD(model.parameters(), lr=args.lr_max, momentum=args.momentum, weight_decay=args.weight_decay)
+    opt_heat = torch.optim.SGD(model.parameters(), lr=2*args.lr_max, momentum=args.momentum, weight_decay=args.weight_decay)
 
     lr_steps = args.epochs * len(train_loader)
     if args.lr_schedule == 'cyclic':
         scheduler = torch.optim.lr_scheduler.CyclicLR(opt, base_lr=args.lr_min, max_lr=args.lr_max,
+                                                      step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
+        scheduler_heat = torch.optim.lr_scheduler.CyclicLR(opt_heat, base_lr=args.lr_min, max_lr=2*args.lr_max,
                                                       step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
         
     elif args.lr_schedule == 'multistep':
@@ -263,13 +266,19 @@ def main():
                 output = model(X + delta)
                 loss = F.cross_entropy(output, y)
                 opt.zero_grad()
+                opt_heat.zero_grad()
                 loss.backward()
                 
                 if args.clip_grad > 0:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
 
-                opt.step()  
+                if p == 1:
+                    opt.step()
+                else:
+                    opt_heat.step()
+
                 scheduler.step()
+                scheduler_heat.step()
                 model.freeze_except()
 
             elif args.method == 'pgd':
