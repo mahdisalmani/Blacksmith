@@ -14,6 +14,8 @@ from architectures.vit import vit_base_patch16_224_in21k
 
 from utils.data_utils import CIFAR10Utils, CIFAR100Utils
 from utils.attack_utils import AttackUtils
+from utils.utils import TrapezoidLR
+
 
 logger = logging.getLogger(__name__)
 
@@ -197,8 +199,8 @@ def main():
     if args.lr_schedule == 'cyclic':
         scheduler = torch.optim.lr_scheduler.CyclicLR(opt, base_lr=args.lr_min, max_lr=args.lr_max,
                                                       step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
-        scheduler_heat = torch.optim.lr_scheduler.CyclicLR(opt_heat, base_lr=args.lr_min, max_lr=2*args.lr_max,
-                                                      step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
+        scheduler_heat = TrapezoidLR(opt_heat, base_lr=args.lr_min, max_lr=1.5 * args.lr_max, hard_bound=args.lr_max,
+                                 step_size_up=lr_steps / 4, step_size_down=3 * lr_steps / 4)
         
     elif args.lr_schedule == 'multistep':
         steps_per_epoch = len(train_loader)
