@@ -193,7 +193,7 @@ def main():
     model.train()
 
     opt = torch.optim.SGD(model.parameters(), lr=args.lr_max, momentum=args.momentum, weight_decay=args.weight_decay)
-    opt_heat = torch.optim.SGD(model.parameters(), lr=2*args.lr_max, momentum=args.momentum, weight_decay=args.weight_decay)
+    opt_heat = torch.optim.SGD(model.parameters(), lr=1.5*args.lr_max, momentum=args.momentum, weight_decay=args.weight_decay)
 
     lr_steps = args.epochs * len(train_loader)
     if args.lr_schedule == 'cyclic':
@@ -225,8 +225,10 @@ def main():
         train_loss = 0
         train_acc = 0
         train_n = 0
-        # rate = max(0.2, 1 -  train_steps / total_steps)
-        rate = args.heat_rate
+        if epoch * 2 < args.epochs:
+            rate = args.heat_rate
+        else:
+            rate = args.heat_rate / 2
         print(rate)
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
             X, y = X.cuda(), y.cuda()
