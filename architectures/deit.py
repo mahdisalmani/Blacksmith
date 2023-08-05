@@ -211,13 +211,9 @@ class Block(nn.Module):
         mlp_hidden_dim = int(dim * mlp_ratio)
         self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
 
-    def forward(self, x, detached=False):
-        if detached:
-            x = x + self.drop_path(self.attn(self.norm1(x.detach()).detach()).detach()).detach()
-            x = x + self.drop_path(self.mlp(self.norm2(x.detach()).detach()).detach()).detach()
-        else:
-            x = x + self.drop_path(self.attn(self.norm1(x)))
-            x = x + self.drop_path(self.mlp(self.norm2(x)))
+    def forward(self, x):
+        x = x + self.drop_path(self.attn(self.norm1(x)))
+        x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
 
 
@@ -312,13 +308,12 @@ class VisionTransformer(nn.Module):
         x = torch.cat((cls_tokens, x), dim=1)
         x = x + self.pos_embed
         x = self.pos_drop(x)
-        
+
         for i, blk in enumerate(self.blocks):
-            if i < end:
-                x = blk(x, detached=False)
-            else:
-                x = blk(x, detached=True)
-        
+            if i >= end:
+                break
+            x = blk(x)
+
         x = self.norm(x)[:, 0]
         x = self.pre_logits(x)
         return x
@@ -333,26 +328,12 @@ class VisionTransformer(nn.Module):
     def freeze_except(self, start=0, end=None):
         if end is None:
             end = self.depth
-
-        
+    
         if end == self.depth:
-            self.patch_embed.requires_grad_(True)
-            self.cls_token.requires_grad_(True)
-            self.pos_embed.requires_grad_(True)
-            self.pos_drop.requires_grad_(True)
-            self.norm.requires_grad_(True)
-            self.pre_logits.requires_grad_(True)
             self.head.requires_grad_(True)
         else:
-            self.patch_embed.requires_grad_(False)
-            self.cls_token.requires_grad_(False)
-            self.pos_embed.requires_grad_(False)
-            self.pos_drop.requires_grad_(False)
-            self.norm.requires_grad_(False)
-            self.pre_logits.requires_grad_(False)
             self.head.requires_grad_(False)
-
-        
+     
         for i, blk in enumerate(self.blocks):
             if start <= i < end:
                 blk.requires_grad_(True)
