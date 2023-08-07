@@ -338,6 +338,31 @@ def main():
             train_steps += 1
 
 
+        for ii, (X, y, batch_idx) in enumerate(train_loader):
+            X, y = X.cuda(), y.cuda()
+            eta = torch.zeros_like(X).cuda()
+            for j in range(len(epsilon)):
+                eta[:, j, :, :].uniform_(-args.unif * epsilon[j][0][0].item(),
+                                         args.unif * epsilon[j][0][0].item())
+            new_eta = attack_utils.clamp(eta.data, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
+
+            grads = []
+            for end in [3, 6, 9, 12]:
+                eta = new_eta.clone().detach()
+                eta.requires_grad = True
+                output = model(X + eta, end=end)
+                loss = F.cross_entropy(output, y)
+                grad = torch.autograd.grad(loss, eta)[0].detach()
+                grads.append(grad)
+            cosin3_12 = torch.nn.functional.cosine_similarity(grads[0].reshape((X.shape[0], -1)),
+                                                              grads[3].reshape((X.shape[0], -1))).mean()
+            cosin6_12 = torch.nn.functional.cosine_similarity(grads[1].reshape((X.shape[0], -1)),
+                                                              grads[3].reshape((X.shape[0], -1))).mean()
+            cosin9_12 = torch.nn.functional.cosine_similarity(grads[2].reshape((X.shape[0], -1)),
+                                                              grads[3].reshape((X.shape[0], -1))).mean()
+            print("COSINE_SIMILARITIES: ", cosin3_12.data, cosin6_12.data, cosin9_12.data)
+            break
+
         if args.validation_early_stop:
             pgd_loss, pgd_acc = attack_utils.evaluate_pgd(valid_loader, model, 10, 1, epsilon=args.epsilon)
             test_loss, test_acc = attack_utils.evaluate_standard(valid_loader, model)
