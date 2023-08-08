@@ -417,11 +417,12 @@ def main():
                                                               grads[3].reshape((X.shape[0], -1))).mean()
             print("COSINE_SIMILARITIES: ", cosin3_12.data, cosin6_12.data, cosin9_12.data)
             
-            middle_X = []
-            output_heat = model(X + eta, end=end, y=middle_X)
-            output_forge = model(X + eta, y=middle_X)
-            print("L2_DIFF: ", torch.norm((output_heat[0]-output_forge[0]).reshape((X.shape[0], -1)), dim).mean())
-            print("Linf_DIFF: ", torch.norm((output_heat[0]-output_forge[0]).reshape((X.shape[0], -1)), dim=1).mean())
+            middle_X1 = []
+            middle_X2 = []
+            output_heat = model(X + eta, end=end, y=middle_X1)
+            output_forge = model(X + eta, y=middle_X2)
+            print("L2_DIFF: ", torch.norm((middle_X1[0]-middle_X2[0]).reshape((X.shape[0], -1)), dim=1).mean())
+            print("Linf_DIFF: ", torch.norm((middle_X1[0]-middle_X2[0]).reshape((X.shape[0], -1)), dim=1).mean())
             break
 
         if args.validation_early_stop:
