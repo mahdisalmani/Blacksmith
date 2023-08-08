@@ -281,43 +281,43 @@ def main():
                 loss.backward()
 
                 #####
-                # if end == 6:
-                #     heat_steps += 1
-                #     total_norm = 0.0
-                #     for name, par in model.named_parameters():
-                #         if not name.startswith("blocks."):
-                #             continue
-                #         if int(name.split('.')[1]) >= 6:
-                #             continue
-                #         param_norm = par.grad.detach().data.norm(2)
-                #         total_norm += param_norm.item() ** 2
-                #     total_norm = total_norm ** 0.5
-                #     heat_grad += total_norm
+                if end == 6:
+                    heat_steps += 1
+                    total_norm = 0.0
+                    for name, par in model.named_parameters():
+                        if not name.startswith("blocks."):
+                            continue
+                        if int(name.split('.')[1]) >= 6:
+                            continue
+                        param_norm = par.grad.detach().data.norm(2)
+                        total_norm += param_norm.item() ** 2
+                    total_norm = total_norm ** 0.5
+                    heat_grad += total_norm
 
-                # if end == 12:
-                #     forge_steps += 1
-                #     total_norm = 0
-                #     for name, par in model.named_parameters():
-                #         if not name.startswith("blocks."):
-                #             continue
-                #         if int(name.split('.')[1]) >= 6:
-                #             continue
-                #         param_norm = par.grad.detach().data.norm(2)
-                #         total_norm += param_norm.item() ** 2
-                #     total_norm = total_norm ** 0.5
-                #     forge_grad_first += total_norm
+                if end == 12:
+                    forge_steps += 1
+                    total_norm = 0
+                    for name, par in model.named_parameters():
+                        if not name.startswith("blocks."):
+                            continue
+                        if int(name.split('.')[1]) >= 6:
+                            continue
+                        param_norm = par.grad.detach().data.norm(2)
+                        total_norm += param_norm.item() ** 2
+                    total_norm = total_norm ** 0.5
+                    forge_grad_first += total_norm
 
-                #     total_norm = 0.0
-                #     for name, par in model.named_parameters():
-                #         if not name.startswith("blocks."):
-                #             continue
-                #         if int(name.split('.')[1]) < 6:
-                #             continue
-                #         param_norm = par.grad.detach().data.norm(2)
-                #         total_norm += param_norm.item() ** 2
+                    total_norm = 0.0
+                    for name, par in model.named_parameters():
+                        if not name.startswith("blocks."):
+                            continue
+                        if int(name.split('.')[1]) < 6:
+                            continue
+                        param_norm = par.grad.detach().data.norm(2)
+                        total_norm += param_norm.item() ** 2
 
-                #     total_norm = total_norm ** 0.5
-                #     forge_grad_second += total_norm
+                    total_norm = total_norm ** 0.5
+                    forge_grad_second += total_norm
 
                 #####
                 
