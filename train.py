@@ -384,7 +384,6 @@ def main():
             train_acc += (output.max(1)[1] == y).sum().item()
             train_n += y.size(0)
             train_steps += 1
-            break
 
         if heat_steps > 0:
             print("avg_batch_heat_grad_norm: ", heat_grad / heat_steps)
