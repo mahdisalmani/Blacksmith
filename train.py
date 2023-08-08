@@ -424,11 +424,10 @@ def main():
             output = model(X + eta, end=end)
             loss = F.cross_entropy(output, y)
             grad = torch.autograd.grad(loss, eta)[0].detach()
-            output_adversary = model(X + attack_utils.clamp(eta + alpha * torch.sign(grad), -epsilon, epsilon), end=end, y=middle_X1)
-            output_normal = model(X, y=middle_X2)
-            print(torch.norm((middle_X1[0]-middle_X2[0]).reshape((X.shape[0], -1)), dim=1))
-            print("L2_DIFF: ", torch.norm((middle_X1[0]-middle_X2[0]).reshape((X.shape[0], -1)), dim=1).mean())
-            print("Linf_DIFF: ", torch.norm((middle_X1[0]-middle_X2[0]).reshape((X.shape[0], -1)), dim=1).mean())
+            output_adversary = model(X + attack_utils.clamp(eta + alpha * torch.sign(grad), -epsilon, epsilon), end=end, return_middle=True)
+            output_normal = model(X, y=middle_X2, return_middle=True)
+            print("L2_DIFF: ", torch.norm((output_adversary-output_normal).reshape((X.shape[0], -1)), dim=1).mean())
+            print("Linf_DIFF: ", torch.norm((output_adversary-output_normal).reshape((X.shape[0], -1)), dim=1).mean())
             break
 
         if args.validation_early_stop:
