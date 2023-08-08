@@ -360,7 +360,7 @@ class VisionTransformer(nn.Module):
         self.num_classes = num_classes
         self.head = nn.Linear(self.embed_dim, num_classes) if num_classes > 0 else nn.Identity()
 
-    def forward_features(self, x, end=12):
+    def forward_features(self, x, end=12, y=[], y_i=5):
         B = x.shape[0]
         x = self.patch_embed(x)
 
@@ -373,15 +373,16 @@ class VisionTransformer(nn.Module):
             if i >= end:
                 break
             x = blk(x)
-
+            if i == y_i:
+                y.append(x)
         x = self.norm(x)[:, 0]
         x = self.pre_logits(x)
         return x
 
-    def forward(self, x, end=None):
+    def forward(self, x, end=None, y=[], y_i=5):
         if end is None:
             end = self.depth
-        x = self.forward_features(x, end=end)
+        x = self.forward_features(x, end=end, y=y, y_i=y_i)
         x = self.head(x)
         return x
 
