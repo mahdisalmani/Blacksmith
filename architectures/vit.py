@@ -372,7 +372,7 @@ class VisionTransformer(nn.Module):
         for i, blk in enumerate(self.blocks):
             if i >= end:
                 if return_middle:
-                    return x.detach()
+                    return x.data()
                 else:
                     break
             x = blk(x)
