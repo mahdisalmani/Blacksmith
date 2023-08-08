@@ -374,12 +374,12 @@ class VisionTransformer(nn.Module):
                 break
             x = blk(x)
             if y is not None and i == y_i:
-                y.append(x.cpu())
+                y.append(x)
         x = self.norm(x)[:, 0]
         x = self.pre_logits(x)
         return x
 
-    def forward(self, x, end=None, y=[], y_i=5):
+    def forward(self, x, end=None, y=None, y_i=5):
         if end is None:
             end = self.depth
         x = self.forward_features(x, end=end, y=y, y_i=y_i)
