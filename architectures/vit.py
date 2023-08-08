@@ -383,7 +383,7 @@ class VisionTransformer(nn.Module):
     def forward(self, x, end=None, return_middle=False):
         if end is None:
             end = self.depth
-        x = self.forward_features(x, end=end, return_middle=True)
+        x = self.forward_features(x, end=end, return_middle=return_middle)
         x = self.head(x)
         return x
 
