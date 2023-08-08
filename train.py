@@ -236,7 +236,7 @@ def main():
         forge_steps = 0
         forge_grad_first = 0.0
         forge_grad_second = 0.0
-        
+
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
@@ -284,12 +284,12 @@ def main():
                 if end == 6:
                     heat_steps += 1
                     total_norm = 0.0
-                    for name, p in model.named_parameters():
+                    for name, par in model.named_parameters():
                         if not name.startswith("blocks."):
                             continue
                         if int(name.split('.')[1]) >= 6:
                             continue
-                        param_norm = p.grad.detach().data.norm(2)
+                        param_norm = par.grad.detach().data.norm(2)
                         total_norm += param_norm.item() ** 2
                     total_norm = total_norm ** 0.5
                     heat_grad += total_norm
@@ -297,23 +297,23 @@ def main():
                 if end == 12:
                     forge_steps += 1
                     total_norm = 0
-                    for name, p in model.named_parameters():
+                    for name, par in model.named_parameters():
                         if not name.startswith("blocks."):
                             continue
                         if int(name.split('.')[1]) >= 6:
                             continue
-                        param_norm = p.grad.detach().data.norm(2)
+                        param_norm = par.grad.detach().data.norm(2)
                         total_norm += param_norm.item() ** 2
                     total_norm = total_norm ** 0.5
                     forge_grad_first += total_norm
 
                     total_norm = 0.0
-                    for name, p in model.named_parameters():
+                    for name, par in model.named_parameters():
                         if not name.startswith("blocks."):
                             continue
                         if int(name.split('.')[1]) < 6:
                             continue
-                        param_norm = p.grad.detach().data.norm(2)
+                        param_norm = par.grad.detach().data.norm(2)
                         total_norm += param_norm.item() ** 2
 
                     total_norm = total_norm ** 0.5
