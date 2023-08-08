@@ -272,6 +272,47 @@ def main():
                 opt.zero_grad()
                 opt_heat.zero_grad()
                 loss.backward()
+
+                #####
+                if end == 6:
+                    heat_steps += 1
+                    total_norm = 0.0
+                    for name, p in model.named_parameters():
+                        if not name.startswith("blocks."):
+                            continue
+                        if int(name.split('.')[1]) >= 6:
+                            continue
+                        param_norm = p.grad.detach().data.norm(2)
+                        total_norm += param_norm.item() ** 2
+                    total_norm = total_norm ** 0.5
+                    heat_grad += total_norm
+
+                if end == 12:
+                    forge_steps += 1
+                    total_norm = 0
+                    for name, p in model.named_parameters():
+                        if not name.startswith("blocks."):
+                            continue
+                        if int(name.split('.')[1]) >= 6:
+                            continue
+                        param_norm = p.grad.detach().data.norm(2)
+                        total_norm += param_norm.item() ** 2
+                    total_norm = total_norm ** 0.5
+                    forge_grad_first += total_norm
+
+                    total_norm = 0.0
+                    for name, p in model.named_parameters():
+                        if not name.startswith("blocks."):
+                            continue
+                        if int(name.split('.')[1]) < 6:
+                            continue
+                        param_norm = p.grad.detach().data.norm(2)
+                        total_norm += param_norm.item() ** 2
+
+                    total_norm = total_norm ** 0.5
+                    forge_grad_second += total_norm
+
+                #####
                 
                 if args.clip_grad > 0:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
@@ -336,6 +377,12 @@ def main():
             train_acc += (output.max(1)[1] == y).sum().item()
             train_n += y.size(0)
             train_steps += 1
+
+        if heat_steps > 0:
+            print("avg_batch_heat_grad_norm: ", heat_grad / heat_steps)
+        if forge_steps > 0:
+            print("avg_batch_forge_grad_norm_first: ", forge_grad_first / forge_steps)
+            print("avg_batch_forge_grad_norm_second: ", forge_grad_second / forge_steps)
 
 
         for ii, (X, y, batch_idx) in enumerate(train_loader):
