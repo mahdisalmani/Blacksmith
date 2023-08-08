@@ -417,8 +417,6 @@ def main():
                                                               grads[3].reshape((X.shape[0], -1))).mean()
             print("COSINE_SIMILARITIES: ", cosin3_12.data, cosin6_12.data, cosin9_12.data)
             
-            middle_X1 = []
-            middle_X2 = []
             eta = new_eta.clone().detach()
             eta.requires_grad = True
             output = model(X + eta, end=end)
@@ -426,8 +424,8 @@ def main():
             grad = torch.autograd.grad(loss, eta)[0].detach()
             output_adversary = model(X + attack_utils.clamp(eta + alpha * torch.sign(grad), -epsilon, epsilon), end=end, return_middle=True)
             output_normal = model(X, return_middle=True)
-            print("L2_DIFF: ", torch.norm((output_adversary-output_normal).reshape((X.shape[0], -1)), dim=1).mean())
-            print("Linf_DIFF: ", torch.norm((output_adversary-output_normal).reshape((X.shape[0], -1)), dim=1).mean())
+            print("L2_DIFF: ", torch.norm((output_adversary.detach()-output_normal.detach()).reshape((X.shape[0], -1)), dim=1).mean())
+            print("Linf_DIFF: ", torch.norm((output_adversary.detach()-output_normal.detach()).reshape((X.shape[0], -1)), dim=1).mean())
             break
 
         if args.validation_early_stop:

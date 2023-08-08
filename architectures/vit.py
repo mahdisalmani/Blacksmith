@@ -373,7 +373,7 @@ class VisionTransformer(nn.Module):
             if i >= end:
                 if return_middle:
                     print(x.shape)
-                    return x.detach().cpu()
+                    return torch.clone(x.detach()).cpu()
                 else:
                     break
             x = blk(x)
