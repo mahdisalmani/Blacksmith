@@ -16,7 +16,6 @@ from utils.data_utils import CIFAR10Utils, CIFAR100Utils
 from utils.attack_utils import AttackUtils
 from utils.utils import TrapezoidLR
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -26,7 +25,6 @@ def get_args():
     # Architecture settings
     parser.add_argument('--dataset', default='CIFAR10', type=str, help='One of: CIFAR10, CIFAR100')
     parser.add_argument('--architecture', default='VIT_BASE', type=str)
-
 
     # Vision transform
     parser.add_argument('--pretrained_vit', default=True, action='store_true',
@@ -38,7 +36,6 @@ def get_args():
     # Training data settings
     parser.add_argument('--batch-size', default=128, type=int)
     parser.add_argument('--data-dir', default='/path/to/datasets/', type=str)
-
 
     # Learning settings
     parser.add_argument('--epochs', default=30, type=int)
@@ -52,12 +49,12 @@ def get_args():
 
     # Method settings
     parser.add_argument('--method', type=str, default='blacksmith', choices=['blacksmith', 'pgd', 'fgsm'])
-    
+
     # Blacksmith settings
     parser.add_argument('--heat-rate', default=0.5, type=float)
 
     # PGD training settings
-    parser.add_argument('--attack-iters', type=int, default=2) 
+    parser.add_argument('--attack-iters', type=int, default=2)
     parser.add_argument('--pgd-alpha', type=float, default=-1.0)
 
     # Adversarial training settings
@@ -79,8 +76,6 @@ def get_args():
                         ''')
     parser.add_argument('--validation-early-stop', action='store_true',
                         help='Store best epoch via validation')
-    
-
 
     # Evaluation settings
     parser.add_argument('--robust_test_size', default=-1, type=int,
@@ -91,7 +86,6 @@ def get_args():
                         If set to None, default, the same args.epsilon will be used for test and train.''')
     parser.add_argument('--pgd-attack-iters', type=int, default=30)
     parser.add_argument('--attack-restarts', type=int, default=3)
-
 
     # Config paths
     parser.add_argument('--seed', default=0, type=int, help='Random seed')
@@ -170,7 +164,6 @@ def main():
     # Set pgd_alpha relative to alpha
     pgd_alpha = args.pgd_alpha * alpha
 
-
     if args.pgd_alpha == -1.0:
         pgd_alpha = (max(args.alpha / args.attack_iters, 2.) / 255.) / data_utils.std
 
@@ -193,15 +186,16 @@ def main():
     model.train()
 
     opt = torch.optim.SGD(model.parameters(), lr=args.lr_max, momentum=args.momentum, weight_decay=args.weight_decay)
-    opt_heat = torch.optim.SGD(model.parameters(), lr=1.5*args.lr_max, momentum=args.momentum, weight_decay=args.weight_decay)
+    opt_heat = torch.optim.SGD(model.parameters(), lr=1.5 * args.lr_max, momentum=args.momentum,
+                               weight_decay=args.weight_decay)
 
     lr_steps = args.epochs * len(train_loader)
     if args.lr_schedule == 'cyclic':
         scheduler = torch.optim.lr_scheduler.CyclicLR(opt, base_lr=args.lr_min, max_lr=args.lr_max,
                                                       step_size_up=lr_steps / 2, step_size_down=lr_steps / 2)
         scheduler_heat = TrapezoidLR(opt_heat, base_lr=args.lr_min, max_lr=1.5 * args.lr_max, hard_bound=args.lr_max,
-                                 step_size_up=lr_steps / 4, step_size_down=3 * lr_steps / 4)
-        
+                                     step_size_up=lr_steps / 4, step_size_down=3 * lr_steps / 4)
+
     elif args.lr_schedule == 'multistep':
         steps_per_epoch = len(train_loader)
         milestones = list(np.array(args.lr_decay_milestones) * steps_per_epoch)
@@ -225,11 +219,7 @@ def main():
         train_loss = 0
         train_acc = 0
         train_n = 0
-        if epoch * 2 < args.epochs:
-            rate = args.heat_rate
-        else:
-            rate = args.heat_rate / 2
-        print(rate)
+
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
@@ -238,165 +228,40 @@ def main():
                     eta[:, j, :, :].uniform_(-args.unif * epsilon[j][0][0].item(),
                                              args.unif * epsilon[j][0][0].item())
                 eta = attack_utils.clamp(eta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
+            delta = eta.detach()
+            output = model(X + delta)
+            loss = F.cross_entropy(output, y)
+            opt.zero_grad()
+            loss.backward()
 
-            
-            if args.method == 'blacksmith':
-                p = 1 if np.random.random() > rate else 0
-                end = args.vit_depth if p == 1 else int(0.5 * args.vit_depth)
-                steps = 1 if p == 1 else 2
-
-                model.freeze_except(end=end)
-                
-                for j in range(steps):
-                    eta.requires_grad = True
-                    output = model(X + eta, end=end+1)
-                    loss = F.cross_entropy(output, y)
-                    grad = torch.autograd.grad(loss, eta)[0].detach()
-                    if args.clip > 0:
-                        if steps == 1:
-                            delta = attack_utils.clamp(eta + (alpha) * torch.sign(grad), -epsilon, epsilon)
-                        else:
-                            delta = attack_utils.clamp(eta + (pgd_alpha) * torch.sign(grad), -epsilon, epsilon)
-                    else:
-                        if steps == 1:
-                            delta = eta + (alpha) * torch.sign(grad)
-                        else:
-                            delta = eta + (pgd_alpha) * torch.sign(grad)
-                            
-                    delta = attack_utils.clamp(delta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
-                    eta = delta.detach()
-                
-                delta = delta.detach()
-                output = model(X + delta)
-                loss = F.cross_entropy(output, y)
-                opt.zero_grad()
-                opt_heat.zero_grad()
-                loss.backward()
-                
-                if args.clip_grad > 0:
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
-
-                if p == 1:
-                    opt.step()
-                else:
-                    opt_heat.step()
-
-                scheduler.step()
-                scheduler_heat.step()
-                model.freeze_except()
-
-            elif args.method == 'pgd':
-                eta.requires_grad = True
-                for _ in range(args.attack_iters):
-                    output = model(X + eta)
-                    loss = F.cross_entropy(output, y)
-                    grad = torch.autograd.grad(loss, eta)[0].detach()
-                    eta.data = attack_utils.clamp(eta + pgd_alpha * torch.sign(grad), -epsilon, epsilon)
-                    eta.data = attack_utils.clamp(eta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
-
-                eta = eta.detach()
-                output = model(X + eta)
-                loss = F.cross_entropy(output, y)
-                opt.zero_grad()
-                loss.backward()
-                
-                if args.clip_grad > 0:
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
-                
-                opt.step()
-                scheduler.step()
-
-            elif args.method == 'fgsm':
-                eta.requires_grad = True
-                output = model(X + eta)
-                loss = F.cross_entropy(output, y)
-                grad = torch.autograd.grad(loss, eta)[0].detach()
-                if args.clip > 0:
-                    eta.data = attack_utils.clamp(eta + alpha * torch.sign(grad), -epsilon, epsilon)
-                else:
-                    eta.data = eta + alpha * torch.sign(grad)
-                eta.data = attack_utils.clamp(eta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
-
-                eta = eta.detach()
-                output = model(X + eta)
-                loss = F.cross_entropy(output, y)
-                opt.zero_grad()
-                loss.backward()
-            
-                if args.clip_grad > 0:
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
-            
-                opt.step()
-                scheduler.step()
-
-            else:
-                raise ValueError
+            if args.clip_grad > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
+            scheduler.step()
 
             train_loss += loss.item() * y.size(0)
             train_acc += (output.max(1)[1] == y).sum().item()
             train_n += y.size(0)
             train_steps += 1
 
-
         if args.validation_early_stop:
-            pgd_loss, pgd_acc = attack_utils.evaluate_pgd(valid_loader, model, 10, 1, epsilon=args.epsilon)
             test_loss, test_acc = attack_utils.evaluate_standard(valid_loader, model)
-            print("Validation pgd10 test-acc, pgd-acc")
-            print(test_acc, pgd_acc)
-
+            print("Validation clean acc")
+            print(test_acc)
             model.train()
-            if pgd_acc >= best_pgd_val_acc:
-                best_pgd_val_acc = pgd_acc
-                best_state_dict = copy.deepcopy(model.state_dict())
-                val_acc_hist.append(test_acc)
-                robust_val_acc_hist.append(pgd_acc)
 
         epoch_time = time.time()
         lr = scheduler.get_last_lr()[0]
-        logger.info('%d \t %.1f \t \t %.4f \t %.4f \t %.4f', epoch, epoch_time - start_epoch_time, lr, train_loss / train_n, train_acc / train_n)
+        logger.info('%d \t %.1f \t \t %.4f \t %.4f \t %.4f', epoch, epoch_time - start_epoch_time, lr,
+                    train_loss / train_n, train_acc / train_n)
         print(epoch, epoch_time - start_epoch_time, lr, train_loss / train_n, train_acc / train_n)
 
-    train_time = time.time()
-    if args.validation_early_stop:
-        torch.save(best_state_dict, os.path.join(model_path, f'best_model.pth'))
+    test_loss, test_acc = attack_utils.evaluate_standard(test_loader, model)
 
-    final_state_dict = model.state_dict()
-    torch.save(final_state_dict, os.path.join(model_path, 'model.pth'))
-
-    logger.info('Total train time: %.4f minutes', (train_time - start_train_time) / 60)
-
-    if args.validation_early_stop:
-        np.save(os.path.join(model_path, 'val_acc_hist.npy'), val_acc_hist)
-        np.save(os.path.join(model_path, 'robust_val_acc.npy'), robust_val_acc_hist)
-
-    if args.robust_test_size != 0:
-        print('Training finished, starting evaluation')
-        args.num_classes = data_utils.max_label + 1
-        if args.architecture.upper() == 'VIT_BASE':
-            model_test = vit_base_patch16_224_in21k(pretrained=args.pretrained_vit,
-                                                    img_size=32,
-                                                    pretrain_pos_only=args.pretrain_pos_only,
-                                                    patch_size=args.patch, num_classes=num_classes, args=args).cuda()
-        elif args.architecture.upper() == 'DEIT_TINY':
-            model_test = deit_tiny_patch16_224(pretrained=args.pretrained_vit,
-                                               img_size=32,
-                                               pretrain_pos_only=args.pretrain_pos_only,
-                                               patch_size=args.patch, num_classes=num_classes, args=args).cuda()
-
-        
-        model_test.load_state_dict(final_state_dict)
-        model_test.float()
-        model_test.eval()
-
-        pgd_loss, pgd_acc = attack_utils.evaluate_pgd(robust_test_loader, model_test, args.pgd_attack_iters,
-                                                      args.attack_restarts, epsilon=args.epsilon_test)
-        test_loss, test_acc = attack_utils.evaluate_standard(test_loader, model_test)
-
-        logger.info('Test Loss \t Test Acc \t PGD Loss \t PGD Acc')
-        print('Test Loss \t Test Acc \t PGD Loss \t PGD Acc')
-        logger.info('%.4f \t \t %.4f \t %.4f \t %.4f', test_loss, test_acc, pgd_loss, pgd_acc)
-        print(test_loss, test_acc, pgd_loss, pgd_acc)
-        print('Evaluating final model finished')
+    logger.info('Test Loss \t Test Acc')
+    print('Test Loss \t Test Acc')
+    logger.info('%.4f \t \t %.4f', test_loss, test_acc)
+    print(test_loss, test_acc)
+    print('Evaluating final model finished')
 
 
 if __name__ == "__main__":
