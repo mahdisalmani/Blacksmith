@@ -384,6 +384,7 @@ def main():
             train_acc += (output.max(1)[1] == y).sum().item()
             train_n += y.size(0)
             train_steps += 1
+            break
 
         if heat_steps > 0:
             print("avg_batch_heat_grad_norm: ", heat_grad / heat_steps)
@@ -419,8 +420,8 @@ def main():
             middle_X = []
             output_heat = model(X + eta, end=end, y=middle_X)
             output_forge = model(X + eta, y=middle_X)
-            print("L2_DIFF: ", torch.norm((output_heat[0]-output_forge[0]).flatten(1), dim=1).mean())
-            print("Linf_DIFF: ", torch.norm((output_heat[0]-output_forge[0]).flatten(1), p=float('inf'), dim=1).mean())
+            print("L2_DIFF: ", torch.norm((output_heat[0]-output_forge[0]).reshape((X.shape[0], -1)), dim).mean())
+            print("Linf_DIFF: ", torch.norm((output_heat[0]-output_forge[0]).reshape((X.shape[0], -1)), dim=1).mean())
             break
 
         if args.validation_early_stop:
