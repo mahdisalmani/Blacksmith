@@ -424,7 +424,7 @@ def main():
             output_adversary = model(X + attack_utils.clamp(eta + alpha * torch.sign(grad), -epsilon, epsilon), end=6, return_middle=True)
             output_normal = model(X, end=6, return_middle=True)
             print("L2_DIFF: ", torch.norm((output_adversary.detach()-output_normal.detach()).reshape((X.shape[0], -1)), dim=1).mean())
-            print("Linf_DIFF: ", torch.norm((output_adversary.detach()-output_normal.detach()).reshape((X.shape[0], -1)), dim=1).mean())
+            print("Linf_DIFF: ", torch.norm((output_adversary.detach()-output_normal.detach()).reshape((X.shape[0], -1)), p=float('inf'), dim=1).mean())
             break
 
         if args.validation_early_stop:
