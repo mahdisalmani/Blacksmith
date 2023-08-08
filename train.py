@@ -230,6 +230,13 @@ def main():
         else:
             rate = args.heat_rate / 2
         print(rate)
+
+        heat_grad = 0.0
+        heat_steps = 0
+        forge_steps = 0
+        forge_grad_first = 0.0
+        forge_grad_second = 0.0
+        
         for i, (X, y, batch_idx) in enumerate(tqdm(train_loader)):
             X, y = X.cuda(), y.cuda()
             eta = torch.zeros_like(X).cuda()
