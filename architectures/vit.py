@@ -372,8 +372,7 @@ class VisionTransformer(nn.Module):
         for i, blk in enumerate(self.blocks):
             if i >= end:
                 if return_middle:
-                    print('!!!!!!!!!!!', x.shape)
-                    return torch.clone(x.detach()).cpu()
+                    return torch.clone(x.detach())
                 else:
                     break
             x = blk(x)
