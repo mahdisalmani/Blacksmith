@@ -374,7 +374,7 @@ class VisionTransformer(nn.Module):
                 break
             x = blk(x)
             if y is not None and i == y_i:
-                y.append(x)
+                y.append(x.cpu())
         x = self.norm(x)[:, 0]
         x = self.pre_logits(x)
         return x
