@@ -417,13 +417,15 @@ def main():
             print("COSINE_SIMILARITIES: ", cosin3_12.data, cosin6_12.data, cosin9_12.data)
             
             eta = new_eta.clone().detach()
-            eta.requires_grad = True
-            output = model(X + eta)
-            loss = F.cross_entropy(output, y)
-            grad = torch.autograd.grad(loss, eta)[0].detach()
-            output_adversary = model(X + attack_utils.clamp(eta + alpha * torch.sign(grad), -epsilon, epsilon), end=6, return_middle=True)
+            for _ in range(30):
+                output = model(X + eta)
+                loss = F.cross_entropy(output, y)
+                grad = torch.autograd.grad(loss, eta)[0].detach()
+                eta.data = attack_utils.clamp(eta + alpha/4 * torch.sign(grad), -epsilon, epsilon)
+                eta.data = attack_utils.clamp(eta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
+            output_adversary = model(X + eta, end=6, return_middle=True)
             output_normal = model(X, end=6, return_middle=True)
-            output_adversary_ = model(X + attack_utils.clamp(eta + alpha * torch.sign(grad), -epsilon, epsilon), end=12, return_middle=True)
+            output_adversary_ = model(X + eta, end=12, return_middle=True)
             output_normal_ = model(X, end=12, return_middle=True)
             print("L2_DIFF Ratio: ", torch.norm((output_adversary.detach()-output_normal.detach()).reshape((X.shape[0], -1)), dim=1).mean()/torch.norm((output_adversary_.detach()-output_normal_.detach()).reshape((X.shape[0], -1)), dim=1))
             print("Linf_DIFF Ratio: ", torch.norm((output_adversary.detach()-output_normal.detach()).reshape((X.shape[0], -1)), p=float('inf'), dim=1).mean()/torch.norm((output_adversary_.detach()-output_normal_.detach()).reshape((X.shape[0], -1)), p=float('inf'), dim=1))
