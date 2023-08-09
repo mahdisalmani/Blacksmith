@@ -417,6 +417,7 @@ def main():
             print("COSINE_SIMILARITIES: ", cosin3_12.data, cosin6_12.data, cosin9_12.data)
             
             eta = new_eta.clone().detach()
+            eta.requires_grad = True
             for _ in range(30):
                 output = model(X + eta)
                 loss = F.cross_entropy(output, y)
