@@ -376,6 +376,8 @@ class VisionTransformer(nn.Module):
                 else:
                     break
             x = blk(x)
+        if return_middle:
+            return torch.clone(x.detach())
         x = self.norm(x)[:, 0]
         x = self.pre_logits(x)
         return x
