@@ -236,6 +236,7 @@ def main():
 
             if args.clip_grad > 0:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip_grad)
+            opt.step()
             scheduler.step()
 
             train_loss += loss.item() * y.size(0)
