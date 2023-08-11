@@ -430,6 +430,10 @@ def main():
             output_normal_ = model(X, end=12, return_middle=True)
             print("L2_DIFF Ratio: ", torch.norm((output_adversary.detach()-output_normal.detach()).reshape((X.shape[0], -1)), dim=1).mean()/torch.norm((output_adversary_.detach()-output_normal_.detach()).reshape((X.shape[0], -1)), dim=1))
             print("Linf_DIFF Ratio: ", torch.norm((output_adversary.detach()-output_normal.detach()).reshape((X.shape[0], -1)), p=float('inf'), dim=1).mean()/torch.norm((output_adversary_.detach()-output_normal_.detach()).reshape((X.shape[0], -1)), p=float('inf'), dim=1))
+            print("L2_DIFF 6: ", torch.norm((output_adversary.detach()-output_normal.detach()).reshape((X.shape[0], -1)), dim=1).mean())
+            print("Linf_DIFF 6: ", torch.norm((output_adversary.detach()-output_normal.detach()).reshape((X.shape[0], -1)), p=float('inf'), dim=1).mean())
+            print("L2_DIFF 12: ", torch.norm((output_adversary_.detach()-output_normal_.detach()).reshape((X.shape[0], -1)), dim=1).mean())
+            print("Linf_DIFF 12: ", torch.norm((output_adversary_.detach()-output_normal_.detach()).reshape((X.shape[0], -1)), p=float('inf'), dim=1).mean())
             break
 
         if args.validation_early_stop:
