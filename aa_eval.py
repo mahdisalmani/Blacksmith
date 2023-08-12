@@ -19,7 +19,7 @@ from utils.utils import TrapezoidLR
 from autoattack import AutoAttack
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data-dir', default='/path/to/datasets/', type=str)
+parser.add_argument('--data-dir', default='../', type=str)
 parser.add_argument('--epsilon', default=16, type=int,
                     help='''Epsilon to be used at test time (only for final model,
                        if computing loss during training epsilon train is used).
