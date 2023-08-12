@@ -96,9 +96,9 @@ if __name__ == '__main__':
     test_loss, test_acc = attack_utils.evaluate_standard(test_loader, my_model)
     print("test acc: ", test_acc)
 
-    open('./Logs/attack_logs.out', 'w').close()
+    open('/kaggle/working/blacksmith/Logs/attack_logs.out', 'w').close()
     adversary = AutoAttack(my_model, norm='Linf', eps=args.epsilon, version='standard',
-                           log_path="./Logs/attack_logs.out")
+                           log_path="'/kaggle/working/blacksmith/Logs/attack_logs.out'")
     adversary.seed = 0
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
