@@ -77,7 +77,7 @@ if __name__ == '__main__':
     model_test.float()
     model_test.eval()
 
-    data_utils = CIFAR100Utils(normalize=False)
+    data_utils = CIFAR10Utils(normalize=False)
     attack_utils = AttackUtils(data_utils.lower_limit, data_utils.upper_limit, data_utils.std)
     (train_loader, test_loader, robust_test_loader,
      valid_loader, train_idx, valid_idx) = data_utils.get_indexed_loaders(args.data_dir,
@@ -85,8 +85,8 @@ if __name__ == '__main__':
                                                                           valid_size=0,
                                                                           robust_test_size=-1)
 
-    dset_mean = (0.5071, 0.4865, 0.4409)
-    dset_std = (0.2673, 0.2564, 0.2762)
+    dset_mean = (0.4914, 0.4822, 0.4465)
+    dset_std = (0.2471, 0.2435, 0.2616)
 
     mu = torch.tensor(dset_mean).view(3, 1, 1).cuda()
     std = torch.tensor(dset_std).view(3, 1, 1).cuda()
