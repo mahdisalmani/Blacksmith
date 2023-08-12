@@ -14,8 +14,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-from architectures.preact_resnet import PreActResNet18
-from architectures.wide_resnet import Wide_ResNet
 ###
 from architectures.vit_16b import ViT_B_patch4
 from architectures.vision_transformer import vit_base_patch16_224_in21k
