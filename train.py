@@ -404,6 +404,12 @@ def main():
             for end in [3, 6, 9, 12]:
                 eta = new_eta.clone().detach()
                 eta.requires_grad = True
+                for _ in range(30):
+                    output = model(X + eta)
+                    loss = F.cross_entropy(output, y)
+                    grad = torch.autograd.grad(loss, eta)[0].detach()
+                    eta.data = attack_utils.clamp(eta + alpha/4 * torch.sign(grad), -epsilon, epsilon)
+                    eta.data = attack_utils.clamp(eta, attack_utils.lower_limit - X, attack_utils.upper_limit - X)
                 output = model(X + eta, end=end)
                 loss = F.cross_entropy(output, y)
                 grad = torch.autograd.grad(loss, eta)[0].detach()
