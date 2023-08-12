@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     open('/kaggle/working/blacksmith/attack_logs.out', 'w').close()
     adversary = AutoAttack(my_model, norm='Linf', eps=args.epsilon, version='standard',
-                           log_path="'/kaggle/working/blacksmith/attack_logs.out'")
+                           log_path="/kaggle/working/blacksmith/attack_logs.out")
     adversary.seed = 0
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
