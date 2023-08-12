@@ -3,23 +3,18 @@ import copy
 import logging
 import os
 import time
-import sys
-import random
 from tqdm import tqdm
 
 import numpy as np
-from scipy.stats import ortho_group
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
+from architectures.deit import deit_tiny_patch16_224
+from architectures.vit import vit_base_patch16_224_in21k
 
-###
-from architectures.vit_16b import ViT_B_patch4
-from architectures.vision_transformer import vit_base_patch16_224_in21k
-###
-from utils.data_utils import CIFAR10Utils, SVHNUtils, CIFAR100Utils
+from utils.data_utils import CIFAR10Utils, CIFAR100Utils
 from utils.attack_utils import AttackUtils
+from utils.utils import TrapezoidLR
 
 from autoattack import AutoAttack
 
