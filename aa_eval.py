@@ -96,7 +96,7 @@ if __name__ == '__main__':
     test_loss, test_acc = attack_utils.evaluate_standard(test_loader, my_model)
     print("test acc: ", test_acc)
 
-    os.mkdir('/Logs/')
+    open('./Logs/attack_logs.out', 'a').close()
     adversary = AutoAttack(my_model, norm='Linf', eps=args.epsilon, version='standard',
                            log_path="./Logs/attack_logs.out")
     adversary.seed = 0
