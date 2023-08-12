@@ -33,6 +33,7 @@ args = parser.parse_args()
 
 class MyModel(torch.nn.Module):
     def __init__(self, model, mu, std):
+        super().__init__()
         self.mu = mu
         self.sigma = std
         self.model = model
