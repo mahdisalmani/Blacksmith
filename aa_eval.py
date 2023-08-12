@@ -71,7 +71,7 @@ if __name__ == '__main__':
     model_test = vit_base_patch16_224_in21k(pretrained=False,
                                             img_size=32,
                                             pretrain_pos_only=False,
-                                            patch_size=4, num_classes=100, args=args).cuda()
+                                            patch_size=4, num_classes=10, args=args).cuda()
 
     model_test.load_state_dict(torch.load(args.model_path))
     model_test.float()
