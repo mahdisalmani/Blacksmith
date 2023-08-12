@@ -68,7 +68,7 @@ def eval_adv_test_whitebox(model, device, test_loader, adverary):
 
 
 if __name__ == '__main__':
-    model_test = vit_base_patch16_224_in21k(pretrained=True,
+    model_test = vit_base_patch16_224_in21k(pretrained=False,
                                             img_size=32,
                                             pretrain_pos_only=False,
                                             patch_size=4, num_classes=100, args=args).cuda()
