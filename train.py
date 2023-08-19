@@ -9,7 +9,6 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from architectures.deit import deit_tiny_patch16_224
 from architectures.vit import vit_base_patch16_224_in21k, vit_large_patch16_224_in21k, vit_small_patch16_224
 
 from utils.data_utils import CIFAR10Utils, CIFAR100Utils
@@ -182,11 +181,6 @@ def main():
                                             patch_size=args.patch, num_classes=num_classes, args=args).cuda()
     elif args.architecture.upper() == 'VIT_SMALL':
         model = vit_small_patch16_224(pretrained=args.pretrained_vit,
-                                      img_size=32,
-                                      pretrain_pos_only=args.pretrain_pos_only,
-                                      patch_size=args.patch, num_classes=num_classes, args=args).cuda()
-    elif args.architecture.upper() == 'DEIT_TINY':
-        model = deit_tiny_patch16_224(pretrained=args.pretrained_vit,
                                       img_size=32,
                                       pretrain_pos_only=args.pretrain_pos_only,
                                       patch_size=args.patch, num_classes=num_classes, args=args).cuda()
@@ -387,11 +381,6 @@ def main():
                                                      patch_size=args.patch, num_classes=num_classes, args=args).cuda()
         elif args.architecture.upper() == 'VIT_SMALL':
             model_test = vit_small_patch16_224(pretrained=args.pretrained_vit,
-                                               img_size=32,
-                                               pretrain_pos_only=args.pretrain_pos_only,
-                                               patch_size=args.patch, num_classes=num_classes, args=args).cuda()
-        elif args.architecture.upper() == 'DEIT_TINY':
-            model_test = deit_tiny_patch16_224(pretrained=args.pretrained_vit,
                                                img_size=32,
                                                pretrain_pos_only=args.pretrain_pos_only,
                                                patch_size=args.patch, num_classes=num_classes, args=args).cuda()
