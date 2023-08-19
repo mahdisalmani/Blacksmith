@@ -1,7 +1,7 @@
 timm==0.5.4
 numpy>=1.18.5
 torch==1.11.0
-torchvision==0.10.0
+torchvision==0.13.0
 clu==0.0.1-alpha.2
 flax==0.2.2
 ml_collections==0.1.0
