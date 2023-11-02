@@ -160,9 +160,6 @@ def main():
                                                                           valid_size=valid_size,
                                                                           robust_test_size=args.robust_test_size)
 
-    # Making sure that data is in the supported format
-    if (data_utils.img_size != (32, 32)):
-        raise RuntimeError('Data is not in the supported format input image size (32x32)')
 
     # Adv training and test settings
     epsilon = (args.epsilon / 255.) / data_utils.std
