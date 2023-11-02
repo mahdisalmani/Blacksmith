@@ -12,6 +12,8 @@ import torch.nn.functional as F
 from architectures.vit import vit_base_patch16_224_in21k, vit_large_patch16_224_in21k, vit_small_patch16_224
 
 from utils.data_utils import CIFAR10Utils, CIFAR100Utils
+from utils.tiny_imagenet import TINYIMAGENETUtils
+
 from utils.attack_utils import AttackUtils
 from utils.utils import TrapezoidLR
 
@@ -103,11 +105,17 @@ def main():
 
     print('Defining data object')
     num_classes = 10
+    img_size = 32
     if args.dataset.upper() == 'CIFAR10':
         data_utils = CIFAR10Utils()
     elif args.dataset.upper() == 'CIFAR100':
         data_utils = CIFAR100Utils()
         num_classes = 100
+    elif args.dataset.upper() == 'TINYIMAGENET':
+        args.patch = 8
+        data_utils = TINYIMAGENETUtils()
+        num_classes = 200
+        img_size = 64
     else:
         raise ValueError('Unsupported dataset.')
 
@@ -171,17 +179,17 @@ def main():
 
     if args.architecture.upper() == 'VIT_BASE':
         model = vit_base_patch16_224_in21k(pretrained=args.pretrained_vit,
-                                           img_size=32,
+                                           img_size=img_size,
                                            pretrain_pos_only=args.pretrain_pos_only,
                                            patch_size=args.patch, num_classes=num_classes, args=args).cuda()
     elif args.architecture.upper() == 'VIT_LARGE':
         model = vit_large_patch16_224_in21k(pretrained=args.pretrained_vit,
-                                            img_size=32,
+                                            img_size=img_size,
                                             pretrain_pos_only=args.pretrain_pos_only,
                                             patch_size=args.patch, num_classes=num_classes, args=args).cuda()
     elif args.architecture.upper() == 'VIT_SMALL':
         model = vit_small_patch16_224(pretrained=args.pretrained_vit,
-                                      img_size=32,
+                                      img_size=img_size,
                                       pretrain_pos_only=args.pretrain_pos_only,
                                       patch_size=args.patch, num_classes=num_classes, args=args).cuda()
     else:
@@ -371,17 +379,17 @@ def main():
         args.num_classes = data_utils.max_label + 1
         if args.architecture.upper() == 'VIT_BASE':
             model_test = vit_base_patch16_224_in21k(pretrained=args.pretrained_vit,
-                                                    img_size=32,
+                                                    img_size=img_size,
                                                     pretrain_pos_only=args.pretrain_pos_only,
                                                     patch_size=args.patch, num_classes=num_classes, args=args).cuda()
         elif args.architecture.upper() == 'VIT_LARGE':
             model_test = vit_large_patch16_224_in21k(pretrained=args.pretrained_vit,
-                                                     img_size=32,
+                                                     img_size=img_size,
                                                      pretrain_pos_only=args.pretrain_pos_only,
                                                      patch_size=args.patch, num_classes=num_classes, args=args).cuda()
         elif args.architecture.upper() == 'VIT_SMALL':
             model_test = vit_small_patch16_224(pretrained=args.pretrained_vit,
-                                               img_size=32,
+                                               img_size=img_size,
                                                pretrain_pos_only=args.pretrain_pos_only,
                                                patch_size=args.patch, num_classes=num_classes, args=args).cuda()
 
