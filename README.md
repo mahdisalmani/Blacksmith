@@ -5,7 +5,7 @@
 This repository contains code and matrials for our paper "Blacksmith: Fast Adversarial Training of Vision Transformers via a Mixture of Single-step and Multi-step Methods" which is now available on arXiv. Please cite us as below.
 
 ```bibtex
-@misc{salmani2023blacksmith,
+@misc{2023blacksmith,
       title={Blacksmith: Fast Adversarial Training of Vision Transformers via a Mixture of Single-step and Multi-step Methods}, 
       author={Mahdi Salmani and Alireza Dehghanpour Farashah and Mohammad Azizmalayeri and Mahdi Amiri and Navid Eslami and Mohammad Taghi Manzuri and Mohammad Hossein Rohban},
       year={2023},
