@@ -1,4 +1,4 @@
-# blacksmith
+# Blacksmith
 
 ## Cite Us
 
